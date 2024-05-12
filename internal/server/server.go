@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -94,6 +95,9 @@ func (s *Server) Start(ctx context.Context) error {
 
 func (s *Server) setupRouter() {
 	router := gin.Default()
+
+	// CORS middleware
+	router.Use(cors.Default())
 
 	personCtrl := router.Group("/person")
 	personCtrl.POST("/create", s.person.Create)
