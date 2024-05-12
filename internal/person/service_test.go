@@ -145,3 +145,56 @@ func TestPersonService_GetByID(t *testing.T) {
 	}
 
 }
+
+func TestPersonService_GetAll(t *testing.T) {
+	type Request struct {
+		offset, limit int
+	}
+
+	cases := []struct {
+		name   string
+		db     func(*testing.T) person.Repository
+		in     Request
+		hasErr bool
+	}{
+		{
+			name: "successfully",
+			db: func(t *testing.T) person.Repository {
+				d := mocks.NewPersonRepository(t)
+				d.On("GetAll", mock.Anything, mock.Anything, mock.Anything).
+					Return([]dto.PersonDTO{
+						{Name: "name"},
+					}, nil)
+
+				return d
+			},
+			in: Request{offset: 0, limit: 20},
+		},
+		{
+			name: "with error",
+			db: func(t *testing.T) person.Repository {
+				d := mocks.NewPersonRepository(t)
+				d.On("GetAll", mock.Anything, mock.Anything, mock.Anything).
+					Return(nil, fmt.Errorf("error"))
+
+				return d
+			},
+			in:     Request{offset: 0, limit: 20},
+			hasErr: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc, err := person.NewService(person.WithRepository(tc.db(t)))
+			require.NoError(t, err)
+
+			res, err := svc.GetAll(context.TODO(), tc.in.offset, tc.in.limit)
+			assert.Equal(t, !tc.hasErr, err == nil)
+			if !tc.hasErr {
+				assert.NotEmpty(t, res)
+			}
+		})
+	}
+
+}

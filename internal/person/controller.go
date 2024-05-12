@@ -87,6 +87,7 @@ func (c *Controller) Create(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, p)
 }
 
+// GetByID retrieves a perons by its ID.
 func (c *Controller) GetByID(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -109,10 +110,16 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 	}
 }
 
-// TODO.
+// GetAll retrieves stored person rows.
 func (c *Controller) GetAll(ctx *gin.Context) {
 	page := utils.StringToInt(ctx.Query("page"), 0)
 	limit := utils.StringToInt(ctx.Query("limit"), 25)
+	if page < 0 || limit < 1 {
+		c.log.Error("invalid request", "page", page, "limit", limit)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+
 	persons, err := c.svc.GetAll(ctx, page, limit)
 	if err != nil {
 		c.log.Error("failed to get person data", "error", err.Error())

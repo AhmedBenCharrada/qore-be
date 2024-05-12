@@ -79,7 +79,7 @@ func (s *ServiceImpl) GetByID(ctx context.Context, id int) (*dto.PersonDTO, erro
 	return &p, nil
 }
 
-// GetByID retrieves a person from the database by its ID.
+// GetByID retrieves list of person data.
 func (s *ServiceImpl) GetAll(ctx context.Context, page int, limit int) ([]dto.PersonDTO, error) {
 	offset := page * limit
 	persons, err := s.db.GetAll(ctx, offset, limit)

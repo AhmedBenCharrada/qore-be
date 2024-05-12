@@ -88,6 +88,7 @@ func (r *Repo) Add(ctx context.Context, d dto.PersonDTO) (dto.PersonDTO, error) 
 	}, err
 }
 
+// GetByID retrieves a person data by its ID.
 func (r *Repo) GetByID(ctx context.Context, id int) (dto.PersonDTO, error) {
 	pr := &entities.Person{}
 	tx := r.db.WithContext(ctx).Table(pr.TableName()).First(&pr, "id= ?", id)
@@ -128,6 +129,7 @@ func (r *Repo) GetByID(ctx context.Context, id int) (dto.PersonDTO, error) {
 	}, nil
 }
 
+// GetAll retrieves person rows.
 func (r *Repo) GetAll(ctx context.Context, offset int, limit int) ([]dto.PersonDTO, error) {
 	persons := []entities.Person{}
 	tx := r.db.WithContext(ctx).Table((entities.Person{}).TableName()).Offset(offset).Limit(limit).Find(&persons)

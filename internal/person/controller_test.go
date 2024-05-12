@@ -193,3 +193,90 @@ func TestNewPersonController_GetByID(t *testing.T) {
 		})
 	}
 }
+
+func TestNewPersonController_GetAll(t *testing.T) {
+	cases := []struct {
+		name           string
+		svc            func(*testing.T) person.Service
+		req            string
+		expectedStatus int
+	}{
+		{
+			name: "successfully",
+			svc: func(t *testing.T) person.Service {
+				s := mocks.NewPersonService(t)
+				s.On("GetAll", mock.Anything, mock.Anything, mock.Anything).
+					Return([]dto.PersonDTO{{Name: "name"}}, nil)
+
+				return s
+			},
+			req:            "",
+			expectedStatus: 200,
+		},
+		{
+			name: "successfully (page 2, page size 30)",
+			svc: func(t *testing.T) person.Service {
+				s := mocks.NewPersonService(t)
+				s.On("GetAll", mock.Anything, mock.Anything, mock.Anything).
+					Return([]dto.PersonDTO{{Name: "name"}}, nil)
+
+				return s
+			},
+			req:            "?page=1&limit=20",
+			expectedStatus: 200,
+		},
+		{
+			name: "with invalid page number",
+			svc: func(t *testing.T) person.Service {
+				return mocks.NewPersonService(t)
+			},
+			req:            "?page=-1&limit=20",
+			expectedStatus: 400,
+		},
+		{
+			name: "with invalid page size",
+			svc: func(t *testing.T) person.Service {
+				return mocks.NewPersonService(t)
+			},
+			req:            "?page=1&limit=0",
+			expectedStatus: 400,
+		},
+		{
+			name: "with internal error",
+			svc: func(t *testing.T) person.Service {
+				s := mocks.NewPersonService(t)
+				s.On("GetAll", mock.Anything, mock.Anything, mock.Anything).
+					Return(nil, fmt.Errorf("error"))
+
+				return s
+			},
+			req:            "",
+			expectedStatus: 500,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl, err := person.NewController(person.WithService(tc.svc(t)))
+			require.NoError(t, err)
+
+			srv := gin.Default()
+			gin.SetMode(gin.TestMode)
+
+			srv.GET("/person", ctrl.GetAll)
+
+			rec := httptest.NewRecorder()
+			req, err := http.NewRequest(http.MethodGet, "/person"+tc.req, nil)
+			require.NoError(t, err)
+
+			srv.ServeHTTP(rec, req)
+			assert.Equal(t, tc.expectedStatus, rec.Code)
+
+			var resp map[string]interface{}
+			err = json.Unmarshal(rec.Body.Bytes(), &resp)
+			assert.NoError(t, err)
+
+			assert.NotEmpty(t, resp)
+		})
+	}
+}
