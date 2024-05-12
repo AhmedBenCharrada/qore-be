@@ -100,6 +100,7 @@ func (s *Server) setupRouter() {
 	router.Use(cors.Default())
 
 	personCtrl := router.Group("/person")
+	personCtrl.GET("", s.person.GetAll)
 	personCtrl.POST("/create", s.person.Create)
 	personCtrl.GET("/:id/info", s.person.GetByID)
 

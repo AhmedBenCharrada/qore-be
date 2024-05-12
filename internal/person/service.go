@@ -13,6 +13,7 @@ import (
 type Repository interface {
 	Add(context.Context, dto.PersonDTO) (dto.PersonDTO, error)
 	GetByID(context.Context, int) (dto.PersonDTO, error)
+	GetAll(context.Context, int, int) ([]dto.PersonDTO, error)
 }
 
 // ServiceImpl implements the person service.
@@ -76,4 +77,17 @@ func (s *ServiceImpl) GetByID(ctx context.Context, id int) (*dto.PersonDTO, erro
 
 	s.log.Info("person retrieved with success", "person", p)
 	return &p, nil
+}
+
+// GetByID retrieves a person from the database by its ID.
+func (s *ServiceImpl) GetAll(ctx context.Context, page int, limit int) ([]dto.PersonDTO, error) {
+	offset := page * limit
+	persons, err := s.db.GetAll(ctx, offset, limit)
+	if err != nil {
+		s.log.Error("failed to get data", "error", err.Error())
+		return nil, err
+	}
+
+	s.log.Info("data retrieved with success")
+	return persons, nil
 }

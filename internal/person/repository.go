@@ -127,3 +127,22 @@ func (r *Repo) GetByID(ctx context.Context, id int) (dto.PersonDTO, error) {
 		Zip:     addr.Zip,
 	}, nil
 }
+
+func (r *Repo) GetAll(ctx context.Context, offset int, limit int) ([]dto.PersonDTO, error) {
+	persons := []entities.Person{}
+	tx := r.db.WithContext(ctx).Table((entities.Person{}).TableName()).Offset(offset).Limit(limit).Find(&persons)
+	if tx != nil && tx.Error != nil {
+		return nil, fmt.Errorf("failed to get person data: %v", tx.Error)
+	}
+
+	dtos := make([]dto.PersonDTO, len(persons))
+	fmt.Println(len(persons))
+	for i, p := range persons {
+		dtos[i] = dto.PersonDTO{
+			ID:   p.ID,
+			Name: p.Name,
+			Age:  p.Age,
+		}
+	}
+	return dtos, nil
+}

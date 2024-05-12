@@ -2,6 +2,7 @@ package dto
 
 // PersonDTO represents the person DTO.
 type PersonDTO struct {
+	ID      int    `json:"id"`
 	Name    string `json:"name"`
 	Age     int    `json:"age"`
 	Number  string `json:"phone_number"`

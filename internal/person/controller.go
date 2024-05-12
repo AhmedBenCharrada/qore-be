@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"qore-be/internal/domain/dto"
+	"qore-be/internal/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,7 @@ import (
 type Service interface {
 	Create(context.Context, dto.PersonDTO) (dto.PersonDTO, error)
 	GetByID(context.Context, int) (*dto.PersonDTO, error)
+	GetAll(context.Context, int, int) ([]dto.PersonDTO, error)
 }
 
 // Controller represents the person controller.
@@ -105,4 +107,22 @@ func (c *Controller) GetByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+}
+
+// TODO.
+func (c *Controller) GetAll(ctx *gin.Context) {
+	page := utils.StringToInt(ctx.Query("page"), 0)
+	limit := utils.StringToInt(ctx.Query("limit"), 25)
+	persons, err := c.svc.GetAll(ctx, page, limit)
+	if err != nil {
+		c.log.Error("failed to get person data", "error", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"content": persons,
+		"page":    page,
+		"size":    limit,
+	})
 }
